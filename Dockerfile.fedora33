@@ -4,6 +4,8 @@ WORKDIR /root
 
 ARG KVER="5.10.12-200.fc33.x86_64"
 
+RUN echo "fastestmirror=1" >> /etc/dnf/dnf.conf
+
 # Grab kernel rpms from koji and install them
 RUN yum install -y koji git-core
 RUN koji download-build --rpm --arch=$(uname -m) kernel-core-${KVER}    && \
@@ -19,9 +21,12 @@ RUN git clone --branch rhel8/fpga-ofs-dev-5.10-lts https://github.com/OPAE/linux
 RUN grep -r MODULE_VERSION linux-dfl-backport/drivers
 
 RUN echo "export KERNEL=$(rpm -qa kernel-devel --queryformat \"%{VERSION}-%{RPMTAG_RELEASE}.%{ARCH}\")" > /root/env && \
-    echo "export KERNELDIR=/lib/modules/\$KERNEL/build" >> /root/env
+    echo "export KERNELDIR=/lib/modules/\$KERNEL/build" >> /root/env && \
+    cd linux-dfl-backport && \
+    echo "export KMODVER=$(git describe HEAD 2>/dev/null || git rev-parse --short HEAD)" >> /root/env && \
+    cd
 
 RUN source /root/env && \
-    make -C linux-dfl-backport "EXTRA_CFLAGS=-DKMODVER=\\\"${KVER}\\\"" -j4 && \
+    make -C linux-dfl-backport "EXTRA_CFLAGS=-DKMODVER=\\\"${KMODVER}\\\"" -j4 V=1 && \
     make -C linux-dfl-backport install -j4 && \
     depmod -a -v ${KVER}

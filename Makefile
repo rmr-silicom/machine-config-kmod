@@ -40,6 +40,7 @@ install: kmods-via-containers kvc-simple-kmod clean-fakeroot
 	install -v -m 644 $(files)/registries.conf $(CONFDIR)/etc/containers/registries/
 	install -v -m 644 $(files)/dfl-kmod-lib.sh $(DESTDIR)/lib/kvc/
 	install -v -m 644 $(files)/dfl-kmod.conf $(CONFDIR)/kvc/
+	install -v -m 644 $(files)/../Dockerfile.fedora33 $(CONFDIR)/kvc/
 	ln -sf ../lib/kvc/dfl-kmod-wrapper.sh $(DESTDIR)/bin/dflkut
 
 clean-fakeroot:

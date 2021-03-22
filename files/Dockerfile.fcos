@@ -1,0 +1,39 @@
+FROM fedora:33
+
+WORKDIR /build
+
+RUN yum install -y fedpkg git kernel-devel python3-pip make gcc-g++ kmod-libs
+RUN pip install six file-magic pyyaml
+
+RUN echo "export KERNEL=$(rpm -qa kernel-devel --queryformat \"%{VERSION}-%{RPMTAG_RELEASE}.%{ARCH}\")" > /root/env && \
+    echo "export KERNELDIR=/lib/modules/\$KERNEL/build" >> /root/env
+
+RUN source /root/env && \
+    mkdir -p /lib/modules/$KERNEL /drivers && \
+    ln -s -T /usr/src/kernels/$KERNEL $KERNELDIR && \
+    git clone --branch rhel8/fpga-ofs-dev-5.10-lts https://github.com/OPAE/linux-dfl-backport.git /root/linux-dfl-backport && \
+    make -C /root/linux-dfl-backport && \
+    find /root/linux-dfl-backport -name "*.ko" -exec cp -v '{}' /drivers \;
+
+RUN git clone https://github.com/ashcrow/filetranspiler.git /root/filetranspiler
+
+ENV FAKEROOT /fakeroot
+RUN mkdir ${FAKEROOT}
+ENV DESTDIR=/fakeroot/usr/local
+ENV CONFDIR=/fakeroot/etc
+
+COPY mc-base.yaml .
+COPY baseconfig.ign .
+COPY transpile.sh .
+COPY Makefile .
+COPY kmods-via-containers .
+COPY kmods-via-containers.conf .
+COPY kmods-via-containers@.service .
+
+RUN make install
+
+RUN git clone https://github.com/kmods-via-containers/kvc-simple-kmod
+RUN make -C kvc-simple-kmod install DESTDIR=${FAKEROOT}/usr/local CONFDIR=${FAKEROOT}/etc/
+
+
+CMD ["/root/transpile.sh", "/fakeroot"]

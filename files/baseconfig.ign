@@ -1,0 +1,17 @@
+{
+  "ignition": { "version": "3.1.0" },
+  "systemd": {
+    "units": [
+    {
+      "name": "require-kvc-simple-kmod.service",
+      "enabled": false,
+      "contents": "[Unit]\nRequires=kmods-via-containers@simple-kmod.service\n[Service]\nType=oneshot\nExecStart=/usr/bin/true\n\n[Install]\nWantedBy=multi-user.target\n"
+    },
+    {
+      "name": "require-kvc-dfl-kmod.service",
+      "enabled": true,
+      "contents": "[Unit]\nRequires=kmods-via-containers@dfl-kmod.service\n[Service]\nType=oneshot\nExecStart=/usr/bin/true\n\n[Install]\nWantedBy=multi-user.target\n"
+    }
+    ]
+  }
+}

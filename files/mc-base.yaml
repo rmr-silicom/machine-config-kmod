@@ -1,0 +1,10 @@
+apiVersion: machineconfiguration.openshift.io/v1
+kind: MachineConfig
+metadata:
+  labels:
+    feature.node.kubernetes.io/custom-silicom.fpga.lc: "true"
+    machineconfiguration.openshift.io/role: master
+    node-role.kubernetes.io/master: ""
+  name: 10-kvc-kmod
+spec:
+  config:

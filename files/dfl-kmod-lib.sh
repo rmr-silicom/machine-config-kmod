@@ -54,6 +54,11 @@ source "/etc/kvc/${KVC_SOFTWARE_NAME}.conf"
 # IMAGE="${KMOD_REPOS}/${KVC_SOFTWARE_NAME}-${KMOD_SOFTWARE_VERSION}:${KVC_KVER}"
 
 build_kmod_container() {
+    if ! $(lspci -d 1c2c: | grep -q Silicom) ; then
+        echo "No Silicom FPGA card on this node"
+        return
+    fi
+
     echo "Building ${IMAGE} kernel module container..."
     kvc_c_build --tls-verify=false -t ${KMOD_REPOS}/${IMAGE}   \
         --file ${KMOD_CONTAINER_BUILD_FILE}          \
@@ -74,6 +79,11 @@ build_kmod_container() {
 }
 
 is_kmod_loaded() {
+    if ! $(lspci -d 1c2c: | grep -q Silicom) ; then
+        echo "No Silicom FPGA card on this node"
+        return
+    fi
+
     module=${1//-/_} # replace any dashes with underscore
     if lsmod | grep "${module}" &>/dev/null; then
         return 0
@@ -83,10 +93,15 @@ is_kmod_loaded() {
 }
 
 build_kmods() {
+    if ! $(lspci -d 1c2c: | grep -q Silicom) ; then
+        echo "No Silicom FPGA card on this node"
+        return
+    fi
+
     # Check to see if it's already pulled
-    if [ -z "$(kvc_c_images $IMAGE --quiet 2>/dev/null)" ]; then
-        echo "The ${IMAGE} kernel module container hasn't been pulled"
-        podman pull --tls-verify=false ${IMAGE}
+    if [ -z "$(kvc_c_images ${KMOD_REPOS}/$IMAGE --quiet 2>/dev/null)" ]; then
+        echo "The ${KMOD_REPOS}/${IMAGE} kernel module container hasn't been pulled"
+        podman pull --tls-verify=false ${KMOD_REPOS}/${IMAGE}
     else
         build_kmod_container
     fi
@@ -97,36 +112,46 @@ build_kmods() {
         # Sanity check to make sure the built kernel modules were really
         # built against the correct module software version
         # Note the tr to delete the trailing carriage return
-        x=$(kvc_c_run $IMAGE modinfo -F version "/lib/modules/${KVC_KVER}/${module}.ko" | \
+        x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F version "/lib/modules/${KVC_KVER}/${module}.ko" | \
                                                                             tr -d '\r')
         if [ "${x}" != "${KMOD_SOFTWARE_VERSION}" ]; then
-            echo "Module version mismatch within container. rebuilding ${IMAGE}"
+            echo "Module version mismatch within container. rebuilding ${KMOD_REPOS}/${IMAGE}"
             build_kmod_container
         fi
         # Sanity check to make sure the built kernel modules were really
         # built against the desired kernel version
-        x=$(kvc_c_run $IMAGE modinfo -F vermagic "/lib/modules/${KVC_KVER}/${module}.ko" | \
+        x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F vermagic "/lib/modules/${KVC_KVER}/${module}.ko" | \
                                                                         cut -d ' ' -f 1)
         if [ "${x}" != "${KVC_KVER}" ]; then
-            echo "Module not built against ${KVC_KVER}. rebuilding ${IMAGE}"
+            echo "Module not built against ${KVC_KVER}. rebuilding ${KMOD_REPOS}/${IMAGE}"
             build_kmod_container
         fi
     done
 }
 
 load_kmods() {
+    if ! $(lspci -d 1c2c: | grep -q Silicom) ; then
+        echo "No Silicom FPGA card on this node"
+        return
+    fi
+
     echo "Loading kernel modules using the kernel module container..."
     for module in ${KMOD_NAMES}; do
         if is_kmod_loaded ${module}; then
             echo "Kernel module ${module} already loaded"
         else
             module=${module//-/_} # replace any dashes with underscore
-            kvc_c_run --privileged $IMAGE modprobe ${module}
+            kvc_c_run --privileged ${KMOD_REPOS}/$IMAGE modprobe ${module}
         fi
     done
 }
 
 unload_kmods() {
+    if ! $(lspci -d 1c2c: | grep -q Silicom) ; then
+        echo "No Silicom FPGA card on this node"
+        return
+    fi
+
     echo "Unloading kernel modules..."
     for module in ${KMOD_NAMES}; do
         if is_kmod_loaded ${module}; then
@@ -139,6 +164,11 @@ unload_kmods() {
 }
 
 wrapper() {
+    if ! $(lspci -d 1c2c: | grep -q Silicom) ; then
+        echo "No Silicom FPGA card on this node"
+        return
+    fi
+
     echo "Running userspace wrapper using the kernel module container..."
-    kvc_c_run --privileged $IMAGE $@
+    kvc_c_run --privileged ${KMOD_REPOS}/$IMAGE $@
 }

@@ -37,19 +37,20 @@ kvc-simple-kmod:
 
 $(subst $(space), $(comma) , $(foo))
 
-install: kmods-via-containers kvc-simple-kmod clean-fakeroot
-	sed "s/^KMOD_REPOS=.*$$/KMOD_REPOS=$(subst /,\\/,$(REPOS))/g" $(FILES)/dfl-kmod.conf > $(FILES)/dfl-kmod.conf.tmp
+install: clean-fakeroot
 	make -C kmods-via-containers
+	sed "s/^KMOD_REPOS=.*$$/KMOD_REPOS=$(subst /,\\/,$(REPOS))/g" $(FILES)/dfl-kmod.conf > $(FILES)/dfl-kmod.conf.tmp
+	install -v -m 644 $(FILES)/dfl-kmod-wrapper.sh $(DESTDIR)/lib/kvc/
+	install -v -m 644 $(FILES)/dfl-kmod-lib.sh $(DESTDIR)/lib/kvc/
+	install -v -m 644 $(FILES)/dfl-kmod.conf.tmp $(CONFDIR)/kvc/dfl-kmod.conf
+	install -v -m 644 $(PWD)/Dockerfile.fedora33 $(CONFDIR)/kvc/
+
+install-debug: kmods-via-containers kvc-simple-kmod clean-fakeroot install
 	make -C kvc-simple-kmod
 	install -v -m 755 -d $(CONFDIR)/etc/containers/registries.conf.d
 	install -v -m 755 -d $(CONFDIR)/etc/containers/registries
-	install -v -m 644 $(FILES)/dfl-kmod-wrapper.sh $(DESTDIR)/lib/kvc/
 	install -v -m 644 $(FILES)/001-silicom.conf $(CONFDIR)/etc/containers/registries.conf.d/
 	install -v -m 644 $(FILES)/registries.conf $(CONFDIR)/etc/containers/registries/
-	install -v -m 644 $(FILES)/dfl-kmod-lib.sh $(DESTDIR)/lib/kvc/
-	install -v -m 644 $(FILES)/dfl-kmod.conf.tmp $(CONFDIR)/kvc/dfl-kmod.conf
-	install -v -m 644 $(FILES)/../Dockerfile.fedora33 $(CONFDIR)/kvc/
-	ln -sf ../lib/kvc/dfl-kmod-wrapper.sh $(DESTDIR)/bin/dflkut
 
 clean-fakeroot:
 	- [ -e $(FAKEROOT) ] && rm -rf $(FAKEROOT)

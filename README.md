@@ -7,12 +7,9 @@ This repository contains the kvc pattern, kmods via containers.
 * Convert the MachineConfig to MachineConfigPool so the labels/annotations created by NFD will be used.
 
 ## Default Makefile values
-FCOS_VERSIONS?=5.10.12-200.fc33.x86_64
-BUILDTOOL?=podman
-KMOD_SOFTWARE_VERSION=eea9cbc
-IMAGE_NAME=dfl-kmod
-REPOS?=quay.io/ryan_raasch
-OUTPUT_YAML=99-kvc-kmod.yaml
+* FCOS_VERSIONS = 5.10.12-200.fc33.x86_64
+* BUILDTOOL = podman
+* REPOS = quay.io/ryan_raasch
 
 ## MachineConfig yaml
 Remove master/role from MachineConfig.

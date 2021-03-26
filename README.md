@@ -6,6 +6,14 @@ This repository contains the kvc pattern, kmods via containers.
 ## TODO:
 * Convert the MachineConfig to MachineConfigPool so the labels/annotations created by NFD will be used.
 
+## Default Makefile values
+FCOS_VERSIONS?=5.10.12-200.fc33.x86_64
+BUILDTOOL?=podman
+KMOD_SOFTWARE_VERSION=eea9cbc
+IMAGE_NAME=dfl-kmod
+REPOS?=quay.io/ryan_raasch
+OUTPUT_YAML=99-kvc-kmod.yaml
+
 ## MachineConfig yaml
 Remove master/role from MachineConfig.
 
@@ -16,7 +24,9 @@ example: docker.io/kvc/dfl-kmod-eea9cbc:5.10.12-200.fc33.x86_64
 Results in a MachineConfig : 99-kvc-kmod.yaml
 
 Finally (once KUBECONFIG is defined, this uses oc):
+
 ```make apply```
+
 ```make delete```
 
 ## drivercontainer

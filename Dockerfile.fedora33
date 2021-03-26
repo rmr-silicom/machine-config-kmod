@@ -2,7 +2,7 @@ FROM fedora:33
 
 WORKDIR /root
 
-ARG KVER="5.10.12-200.fc33.x86_64"
+ARG KVER
 
 RUN echo "fastestmirror=1" >> /etc/dnf/dnf.conf
 
@@ -14,11 +14,8 @@ RUN koji download-build --rpm --arch=$(uname -m) kernel-core-${KVER}    && \
     yum install -y ./kernel-{core,devel,modules}-${KVER}.rpm  make gcc  && \
     rm -f ./kernel-{core,devel,modules}-${KVER}.rpm
 
-
 RUN git clone --branch rhel8/fpga-ofs-dev-5.10-lts https://github.com/OPAE/linux-dfl-backport.git && \
-    grep -l -r MODULE_LICENSE linux-dfl-backport/drivers/ | xargs sed -i '/^MODULE_LICENSE/ s/$/\nMODULE_VERSION(KMODVER);/'
-
-RUN grep -r MODULE_VERSION linux-dfl-backport/drivers
+    grep -l -v -r MODULE_VERSION linux-dfl-backport/drivers/ | xargs sed -i '/^MODULE_LICENSE/ s/$/\nMODULE_VERSION(KMODVER);/'
 
 RUN echo "export KERNEL=$(rpm -qa kernel-devel --queryformat \"%{VERSION}-%{RPMTAG_RELEASE}.%{ARCH}\")" > /root/env && \
     echo "export KERNELDIR=/lib/modules/\$KERNEL/build" >> /root/env && \
@@ -30,3 +27,8 @@ RUN source /root/env && \
     make -C linux-dfl-backport "EXTRA_CFLAGS=-DKMODVER=\\\"${KMODVER}\\\"" -j4 V=1 && \
     make -C linux-dfl-backport install -j4 && \
     depmod -a -v ${KVER}
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal
+RUN microdnf install kmod
+RUN mkdir -p /lib/modules/${KVER}
+COPY --from=0 /lib/modules/${KVER} /lib/modules/${KVER}

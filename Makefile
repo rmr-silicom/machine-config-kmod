@@ -1,4 +1,4 @@
-.PHONY: clean apply transpile install clean-fakeroot
+.PHONY: clean apply transpile install clean-fakeroot $(fcos_versions)
 
 pwd=$(shell pwd)
 include $(pwd)/files/dfl-kmod.conf
@@ -6,7 +6,8 @@ fakeroot=$(pwd)/fakeroot
 files=$(pwd)/files
 export DESTDIR=$(fakeroot)/usr/local
 export CONFDIR=$(fakeroot)/etc
-
+export GODEBUG=x509ignoreCN=0
+fcos_versions=5.10.12-200.fc33.x86_64
 buildtool=podman
 
 all: transpile
@@ -46,14 +47,15 @@ install: kmods-via-containers kvc-simple-kmod clean-fakeroot
 clean-fakeroot:
 	- [ -e $(fakeroot) ] && rm -rf $(fakeroot)
 
-drivercontainer:
-	$(buildtool) build . -f Dockerfile.fedora33 -t $(IMAGE)
+all-drivercontainers: $(fcos_versions)
+$(fcos_versions):
+	$(buildtool) build . -f Dockerfile.fedora33 --build-arg KVER=$@ -t $(IMAGE)$@
 
 # Insecure registries
 # https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html-single/images/index
 #
 push:
-	GODEBUG=x509ignoreCN=0 $(buildtool) push $(IMAGE)
+	$(buildtool) push $(IMAGE)
 
 clean:
 	rm -rf filetranspiler kmods-via-containers fakeroot 99-silicom-kmod.yaml kvc-simple-kmod

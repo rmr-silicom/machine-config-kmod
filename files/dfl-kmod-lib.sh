@@ -100,10 +100,8 @@ build_kmods() {
 
     # Check to see if it's already pulled
     if [ -z "$(kvc_c_images ${KMOD_REPOS}/$IMAGE --quiet 2>/dev/null)" ]; then
-        echo "The ${KMOD_REPOS}/${IMAGE} kernel module container hasn't been pulled"
+        echo "The ${KMOD_REPOS}/${IMAGE} kernel module container has not been built/pulled"
         podman pull --tls-verify=false ${KMOD_REPOS}/${IMAGE}
-    else
-        build_kmod_container
     fi
 
     # Sanity checks for each module to load

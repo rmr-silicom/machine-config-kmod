@@ -16,9 +16,9 @@ Make the drivercontainer
 
 ``make all-drivercontainers``
 
-Override the Makefile settings.
+Override the Makefile settings for the drivercontainer
 
-``buildtool=docker REPOS=docker/dfl-kmod-xxx- make -n all-drivercontainers``
+``buildtool=docker REPOS=docker/dfl-kmod-xxx- fcos_versions=5.10.12-200.fc33.x86_64 make -n all-drivercontainers``
 
 
 

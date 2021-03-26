@@ -5,6 +5,7 @@ metadata:
     feature.node.kubernetes.io/custom-silicom.fpga.lc: "true"
     machineconfiguration.openshift.io/role: master
     node-role.kubernetes.io/master: ""
+    node-role.kubernetes.io/worker: ""
   name: 10-kvc-kmod
 spec:
   config:

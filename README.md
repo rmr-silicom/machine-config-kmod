@@ -6,9 +6,19 @@ This repository contains the kvc pattern, kmods via containers.
 TODO:
 * Convert the MachineConfig to MachineConfigPool so the labels/annotations created by NFD will be used.
 
+== MachineConfig
+Change where daemonset for MachineConfig to be installed.
+
+edit file: files/mc-base.yaml
+change/remove:
+    node-role.kubernetes.io/master: ""
+    node-role.kubernetes.io/worker: ""
+
 The MachineConfig will be created as such
 
-``make``
+``REPOS=docker.io/kvc make``
+
+example: docker.io/kvc/dfl-kmod-eea9cbc:5.10.12-200.fc33.x86_64
 
 Results in a MachineConfig : 99-silicom-kmod.yaml
 
@@ -18,7 +28,6 @@ Make the drivercontainer
 
 Override the Makefile settings for the drivercontainer
 
-``buildtool=docker REPOS=docker/dfl-kmod-xxx- fcos_versions=5.10.12-200.fc33.x86_64 make -n all-drivercontainers``
+example: docker.io/kvc/dfl-kmod-eea9cbc:5.10.12-200.fc33.x86_64
 
-
-
+``BUILDTOOL=docker REPOS=docker.io/kvc fcos_versions=5.10.12-200.fc33.x86_64 make -n all-drivercontainers``

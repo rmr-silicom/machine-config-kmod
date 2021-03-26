@@ -9,10 +9,10 @@ TODO:
 == MachineConfig
 Change where daemonset for MachineConfig to be installed.
 
-edit file: files/mc-base.yaml
-change/remove:
+``NOT_MASTER=true make```
+
+This will remove from the below line from files/mc-base.yaml:
     node-role.kubernetes.io/master: ""
-    node-role.kubernetes.io/worker: ""
 
 The MachineConfig will be created as such
 

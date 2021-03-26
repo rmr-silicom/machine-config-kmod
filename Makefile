@@ -13,6 +13,7 @@ BUILDTOOL?=podman
 KMOD_SOFTWARE_VERSION=eea9cbc
 IMAGE_NAME=dfl-kmod
 REPOS?=quay.io/ryan_raasch
+OUTPUT_YAML=99-kvc-kmod.yaml
 
 all: transpile
 
@@ -24,8 +25,12 @@ filetranspiler:
 	$(BUILDTOOL) build filetranspiler -t filetranspiler:latest -f filetranspiler/Dockerfile
 
 transpile: filetranspiler install kmods-via-containers
-	cat $(FILES)/mc-base.yaml > $(PWD)/99-silicom-kmod.yaml
-	podman run --rm -ti --volume $(PWD):/srv:z localhost/filetranspiler:latest -i /srv/files/baseconfig.ign -f /srv/fakeroot --format=yaml --dereference-symlinks | sed 's/^/     /' >> $(PWD)/99-silicom-kmod.yaml
+ifdef NOT_MASTER
+	sed "/node-role.kubernetes.io\/master/d" $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
+else
+	cat $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
+endif
+	podman run --rm -ti --volume $(PWD):/srv:z localhost/filetranspiler:latest -i /srv/files/baseconfig.ign -f /srv/fakeroot --format=yaml --dereference-symlinks | sed 's/^/     /' >> $(PWD)/$(OUTPUT_YAML)
 
 # The generic framework for KVC
 # We provide a shell library to overwrite the functionality
@@ -34,8 +39,6 @@ kmods-via-containers:
 
 kvc-simple-kmod:
 	git clone https://github.com/kmods-via-containers/kvc-simple-kmod.git
-
-$(subst $(space), $(comma) , $(foo))
 
 install: clean-fakeroot
 	make -C kmods-via-containers
@@ -66,10 +69,10 @@ push:
 	$(buildtool) push $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$@
 
 clean:
-	rm -rf filetranspiler kmods-via-containers fakeroot 99-silicom-kmod.yaml kvc-simple-kmod
+	rm -rf filetranspiler kmods-via-containers fakeroot $(OUTPUT_YAML) kvc-simple-kmod
 
 apply:
-	KUBECONFIG=/disks/clustermgr/ansible/okd/install_dir/auth/kubeconfig oc apply -f 99-silicom-kmod.yaml
+	KUBECONFIG=/disks/clustermgr/ansible/okd/install_dir/auth/kubeconfig oc apply -f $(OUTPUT_YAML)
 
 delete:
-	KUBECONFIG=/disks/clustermgr/ansible/okd/install_dir/auth/kubeconfig oc delete -f 99-silicom-kmod.yaml
+	KUBECONFIG=/disks/clustermgr/ansible/okd/install_dir/auth/kubeconfig oc delete -f $(OUTPUT_YAML)

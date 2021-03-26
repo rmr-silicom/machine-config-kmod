@@ -4,6 +4,6 @@ metadata:
   labels:
     node-role.kubernetes.io/master: ""
     node-role.kubernetes.io/worker: ""
-  name: 10-kvc-kmod
+  name: 99-kvc-kmod
 spec:
   config:

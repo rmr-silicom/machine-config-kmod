@@ -7,8 +7,9 @@ files=$(pwd)/files
 export DESTDIR=$(fakeroot)/usr/local
 export CONFDIR=$(fakeroot)/etc
 export GODEBUG=x509ignoreCN=0
-fcos_versions=5.10.12-200.fc33.x86_64
-buildtool=podman
+fcos_versions?=5.10.12-200.fc33.x86_64
+buildtool?=podman
+REPOS?=quay.io/ryan_raasch/dfl-kmod-$(KMOD_SOFTWARE_VERSION)
 
 all: transpile
 
@@ -49,13 +50,13 @@ clean-fakeroot:
 
 all-drivercontainers: $(fcos_versions)
 $(fcos_versions):
-	$(buildtool) build . -f Dockerfile.fedora33 --build-arg KVER=$@ -t $(IMAGE)$@
+	$(buildtool) build . -f Dockerfile.fedora33 --build-arg KVER=$@ -t $(REPOS)/$(IMAGE)$@
 
 # Insecure registries
 # https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html-single/images/index
 #
 push:
-	$(buildtool) push $(IMAGE)
+	$(buildtool) push $(REPOS)/$(IMAGE)$@
 
 clean:
 	rm -rf filetranspiler kmods-via-containers fakeroot 99-silicom-kmod.yaml kvc-simple-kmod

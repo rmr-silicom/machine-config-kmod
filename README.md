@@ -15,8 +15,9 @@ example: docker.io/kvc/dfl-kmod-eea9cbc:5.10.12-200.fc33.x86_64
 
 Results in a MachineConfig : 99-kvc-kmod.yaml
 
-Finally:
-```kubctl apply -f 99-kvc-kmod.yaml```
+Finally (once KUBECONFIG is defined, this uses oc):
+```make apply```
+```make delete```
 
 ## drivercontainer
 

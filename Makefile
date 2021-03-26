@@ -40,7 +40,7 @@ kmods-via-containers:
 kvc-simple-kmod:
 	git clone https://github.com/kmods-via-containers/kvc-simple-kmod.git
 
-install: clean-fakeroot
+install: clean-fakeroot kmods-via-containers
 	make -C kmods-via-containers
 	sed "s/^KMOD_REPOS=.*$$/KMOD_REPOS=$(subst /,\\/,$(REPOS))/g" $(FILES)/dfl-kmod.conf > $(FILES)/dfl-kmod.conf.tmp
 	install -v -m 644 $(FILES)/dfl-kmod-wrapper.sh $(DESTDIR)/lib/kvc/
@@ -72,7 +72,7 @@ clean:
 	rm -rf filetranspiler kmods-via-containers fakeroot $(OUTPUT_YAML) kvc-simple-kmod
 
 apply:
-	KUBECONFIG=/disks/clustermgr/ansible/okd/install_dir/auth/kubeconfig oc apply -f $(OUTPUT_YAML)
+	oc apply -f $(OUTPUT_YAML)
 
 delete:
-	KUBECONFIG=/disks/clustermgr/ansible/okd/install_dir/auth/kubeconfig oc delete -f $(OUTPUT_YAML)
+	oc delete -f $(OUTPUT_YAML)

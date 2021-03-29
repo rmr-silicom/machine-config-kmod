@@ -64,7 +64,7 @@ build_kmod_container() {
         --file ${KMOD_CONTAINER_BUILD_FILE}          \
         --label="name=${KVC_SOFTWARE_NAME}"          \
         --build-arg KVER=${KVC_KVER}                 \
-        --build-arg KMODVER=${KMOD_SOFTWARE_VERSION} \
+#        --build-arg KMODVER=${KMOD_SOFTWARE_VERSION} \
         ${KMOD_CONTAINER_BUILD_CONTEXT}
 
     # get rid of any dangling containers if they exist
@@ -101,7 +101,7 @@ build_kmods() {
     # Check to see if it's already pulled
     if [ -z "$(kvc_c_images ${KMOD_REPOS}/$IMAGE --quiet 2>/dev/null)" ]; then
         echo "The ${KMOD_REPOS}/${IMAGE} kernel module container has not been built/pulled"
-        podman pull --tls-verify=false ${KMOD_REPOS}/${IMAGE}
+        podman pull ${KMOD_REPOS}/${IMAGE}
     fi
 
     # Sanity checks for each module to load
@@ -110,19 +110,21 @@ build_kmods() {
         # Sanity check to make sure the built kernel modules were really
         # built against the correct module software version
         # Note the tr to delete the trailing carriage return
-        x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F version "/lib/modules/${KVC_KVER}/${module}.ko" | \
+        x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F version "/lib/modules/${KVC_KVER}/extra/${module}.ko" | \
                                                                             tr -d '\r')
         if [ "${x}" != "${KMOD_SOFTWARE_VERSION}" ]; then
             echo "Module version mismatch within container. rebuilding ${KMOD_REPOS}/${IMAGE}"
-            build_kmod_container
+            echo "${x}, ${KMOD_SOFTWARE_VERSION}"
+            # build_kmod_container
         fi
         # Sanity check to make sure the built kernel modules were really
         # built against the desired kernel version
-        x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F vermagic "/lib/modules/${KVC_KVER}/${module}.ko" | \
+        x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F vermagic "/lib/modules/${KVC_KVER}/extra/${module}.ko" | \
                                                                         cut -d ' ' -f 1)
-        if [ "${x}" != "${KVC_KVER}" ]; then
-            echo "Module not built against ${KVC_KVER}. rebuilding ${KMOD_REPOS}/${IMAGE}"
-            build_kmod_container
+        if [ "${x}" != "${KMOD_SOFTWARE_VERSION}" ]; then
+            echo "Module not built against ${KMOD_SOFTWARE_VERSION}. rebuilding ${KMOD_REPOS}/${IMAGE}"
+            echo "${x}, ${KMOD_SOFTWARE_VERSION}"
+            # build_kmod_container
         fi
     done
 }

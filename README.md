@@ -14,7 +14,7 @@ This repository contains the kvc pattern, kmods via containers.
 ## MachineConfig yaml
 Remove master/role from MachineConfig.
 
-```REPOS=docker.io/kvc NOT_MASTER=true make```
+```REPOS=docker.io/kvc INSTALL_ON_MASTER=no make```
 
 example: docker.io/kvc/dfl-kmod-eea9cbc:5.10.12-200.fc33.x86_64
 

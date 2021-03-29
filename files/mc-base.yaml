@@ -2,8 +2,8 @@ apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
   labels:
-    node-role.kubernetes.io/master: ""
-    node-role.kubernetes.io/worker: ""
+    machineconfiguration.openshift.io/role: "master"
+    machineconfiguration.openshift.io/role: "worker"
   name: 99-kvc-kmod
 spec:
   config:

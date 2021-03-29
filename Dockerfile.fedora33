@@ -31,4 +31,4 @@ RUN source /root/env && \
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 RUN microdnf install kmod
 RUN mkdir -p /lib/modules/${KVER}
-COPY --from=0 /lib/modules/${KVER} /lib/modules/${KVER}
+COPY --from=0 /lib/modules/${KVER}/extra/* /lib/modules/${KVER}

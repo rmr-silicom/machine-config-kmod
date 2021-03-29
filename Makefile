@@ -7,8 +7,13 @@ export DESTDIR=$(FAKEROOT)/usr/local
 export CONFDIR=$(FAKEROOT)/etc
 export GODEBUG=x509ignoreCN=0
 
+INSTALL_ON_MASTER=no
 FILES=$(PWD)/files
+
 FCOS_VERSIONS?=5.10.12-200.fc33.x86_64
+FCOS_VERSIONS_BUILDS := $(foreach target,$(FCOS_VERSIONS),$(addprefix build-,$(target)))
+FCOS_VERSIONS_PUSHES := $(foreach target,$(FCOS_VERSIONS),$(addprefix push-,$(target)))
+
 BUILDTOOL?=podman
 KMOD_SOFTWARE_VERSION=eea9cbc
 IMAGE_NAME=dfl-kmod
@@ -16,6 +21,8 @@ REPOS?=quay.io/ryan_raasch
 OUTPUT_YAML=99-kvc-kmod.yaml
 
 all: transpile
+
+$(FCOS_VERSIONS_BUILDS):
 
 #
 # From a 'fakeroot' folder, generate an yaml file to be applied to oc
@@ -25,10 +32,10 @@ filetranspiler:
 	$(BUILDTOOL) build filetranspiler -t filetranspiler:latest -f filetranspiler/Dockerfile
 
 transpile: filetranspiler install kmods-via-containers
-ifdef NOT_MASTER
-	sed "/node-role.kubernetes.io\/master/d" $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
-else
+ifeq ($(INSTALL_ON_MASTER),yes)
 	cat $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
+else
+	sed "/node-role.kubernetes.io\/master/d" $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
 endif
 	podman run --rm -ti --volume $(PWD):/srv:z localhost/filetranspiler:latest -i /srv/files/baseconfig.ign -f /srv/fakeroot --format=yaml --dereference-symlinks | sed 's/^/     /' >> $(PWD)/$(OUTPUT_YAML)
 
@@ -58,15 +65,13 @@ install-debug: kmods-via-containers kvc-simple-kmod clean-fakeroot install
 clean-fakeroot:
 	- [ -e $(FAKEROOT) ] && rm -rf $(FAKEROOT)
 
-all-drivercontainers: $(FCOS_VERSIONS)
-$(FCOS_VERSIONS):
-	$(BUILDTOOL) build . -f Dockerfile.fedora33 --build-arg KVER=$@ -t $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$@
+build-drivercontainers: $(FCOS_VERSIONS_BUILDS)
+$(FCOS_VERSIONS_BUILDS):
+	$(BUILDTOOL) build . -f Dockerfile.fedora33 --build-arg KVER=$@ -t $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(subst build-,,$@)
 
-# Insecure registries
-# https://access.redhat.com/documentation/en-us/openshift_container_platform/4.4/html-single/images/index
-#
-push:
-	$(buildtool) push $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$@
+push-drivercontainers: $(FCOS_VERSIONS_PUSHES)
+$(FCOS_VERSIONS_PUSHES):
+	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(subst push-,,$@)
 
 clean:
 	rm -rf filetranspiler kmods-via-containers fakeroot $(OUTPUT_YAML) kvc-simple-kmod

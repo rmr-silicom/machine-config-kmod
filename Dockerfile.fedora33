@@ -24,9 +24,11 @@ RUN echo "export KERNEL=$(rpm -qa kernel-devel --queryformat \"%{VERSION}-%{RPMT
     cd
 
 RUN source /root/env && \
+    rm -rf /lib/modules/${KVER}/kernel && \
     make -C linux-dfl-backport "EXTRA_CFLAGS=-DKMODVER=\\\"${KMODVER}\\\"" -j4 V=1 && \
     make -C linux-dfl-backport install -j4 && \
     depmod -a -v ${KVER}
+
 
 FROM registry.access.redhat.com/ubi8/ubi-minimal
 RUN microdnf install kmod

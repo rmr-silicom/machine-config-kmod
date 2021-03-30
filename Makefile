@@ -49,11 +49,15 @@ kvc-simple-kmod:
 
 install: clean-fakeroot kmods-via-containers
 	make -C kmods-via-containers
-	sed "s/^KMOD_REPOS=.*$$/KMOD_REPOS=$(subst /,\\/,$(REPOS))/g" $(FILES)/dfl-kmod.conf > $(FILES)/dfl-kmod.conf.tmp
+	install -v -m 755 -d $(CONFDIR)/etc/modprobe.d
+	install -v -m 755 -d $(CONFDIR)/etc/modules-load.d/
 	install -v -m 644 $(FILES)/dfl-kmod-wrapper.sh $(DESTDIR)/lib/kvc/
 	install -v -m 644 $(FILES)/dfl-kmod-lib.sh $(DESTDIR)/lib/kvc/
-	install -v -m 644 $(FILES)/dfl-kmod.conf.tmp $(CONFDIR)/kvc/dfl-kmod.conf
+	install -v -m 644 $(FILES)/dfl-kmod.conf $(CONFDIR)/kvc/
+	sed -i "s/^KMOD_REPOS=.*$$/KMOD_REPOS=$(subst /,\\/,$(REPOS))/g" $(CONFDIR)/kvc/dfl-kmod.conf
 	install -v -m 644 $(PWD)/Dockerfile.fedora33 $(CONFDIR)/kvc/
+	install -v -m 644 $(FILES)/blacklist-bmc.conf $(CONFDIR)/etc/modprobe.d/
+	install -v -m 644 $(FILES)/regmap_spi_avmm.conf $(CONFDIR)/etc/modules-load.d
 
 install-debug: kmods-via-containers kvc-simple-kmod clean-fakeroot install
 	make -C kvc-simple-kmod

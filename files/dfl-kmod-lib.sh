@@ -64,7 +64,7 @@ build_kmod_container() {
         --file ${KMOD_CONTAINER_BUILD_FILE}          \
         --label="name=${KVC_SOFTWARE_NAME}"          \
         --build-arg KVER=${KVC_KVER}                 \
-#        --build-arg KMODVER=${KMOD_SOFTWARE_VERSION} \
+        --build-arg KMODVER=${KMOD_SOFTWARE_VERSION} \
         ${KMOD_CONTAINER_BUILD_CONTEXT}
 
     # get rid of any dangling containers if they exist
@@ -115,16 +115,16 @@ build_kmods() {
         if [ "${x}" != "${KMOD_SOFTWARE_VERSION}" ]; then
             echo "Module version mismatch within container. rebuilding ${KMOD_REPOS}/${IMAGE}"
             echo "${x}, ${KMOD_SOFTWARE_VERSION}"
-            # build_kmod_container
+            build_kmod_container
         fi
         # Sanity check to make sure the built kernel modules were really
         # built against the desired kernel version
         x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F vermagic "/lib/modules/${KVC_KVER}/extra/${module}.ko" | \
                                                                         cut -d ' ' -f 1)
-        if [ "${x}" != "${KMOD_SOFTWARE_VERSION}" ]; then
+        if [ "${x}" != "${KVC_KVER}" ]; then
             echo "Module not built against ${KMOD_SOFTWARE_VERSION}. rebuilding ${KMOD_REPOS}/${IMAGE}"
-            echo "${x}, ${KMOD_SOFTWARE_VERSION}"
-            # build_kmod_container
+            echo "${x}, ${KVC_KVER}"
+            build_kmod_container
         fi
     done
 }

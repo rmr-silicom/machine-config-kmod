@@ -71,7 +71,7 @@ clean-fakeroot:
 
 build-drivercontainers: $(FCOS_VERSIONS_BUILDS)
 $(FCOS_VERSIONS_BUILDS):
-	$(BUILDTOOL) build . -f Dockerfile.fedora33 --build-arg KVER=$@ -t $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(subst build-,,$@)
+	$(BUILDTOOL) build . -f Dockerfile.fedora33 --build-arg KVER=$(subst build-,,$@) -t $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(subst build-,,$@)
 
 push-drivercontainers: $(FCOS_VERSIONS_PUSHES)
 $(FCOS_VERSIONS_PUSHES):

@@ -10,6 +10,14 @@ export GODEBUG=x509ignoreCN=0
 INSTALL_ON_MASTER=no
 FILES=$(PWD)/files
 
+RHEL82_RPM := https://vault.centos.org/8.2.2004/BaseOS/x86_64/os/Packages/kernel-devel-4.18.0-193.el8.x86_64.rpm
+RHEL83_RPM := http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/kernel-devel-4.18.0-240.el8.x86_64.rpm
+
+KVER_RHEL82 = 4.18.0-193.el8.x86_64
+KVER_RHEL83 = 4.18.0-240.el8.x86_64
+BUILD_ARGS_RHEL82 = --build-arg CENTOS_VER=docker.io/centos:8.2.2004 --build-arg RPM_URL=$(RHEL82_RPM) --build-arg KVER=$(KVER_RHEL82)
+BUILD_ARGS_RHEL83 = --build-arg CENTOS_VER=docker.io/centos:8.3.2011 --build-arg RPM_URL=$(RHEL83_RPM) --build-arg KVER=$(KVER_RHEL83)
+
 FCOS_VERSIONS?=5.10.12-200.fc33.x86_64
 FCOS_VERSIONS_BUILDS := $(foreach target,$(FCOS_VERSIONS),$(addprefix build-,$(target)))
 FCOS_VERSIONS_PUSHES := $(foreach target,$(FCOS_VERSIONS),$(addprefix push-,$(target)))
@@ -69,6 +77,12 @@ install-debug: kmods-via-containers kvc-simple-kmod clean-fakeroot install
 clean-fakeroot:
 	- [ -e $(FAKEROOT) ] && rm -rf $(FAKEROOT)
 
+rhel82:
+	$(BUILDTOOL) build . -f Dockerfile.centos $(BUILD_ARGS_RHEL82) -t $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(KVER_RHEL82)
+
+rhel83:
+	$(BUILDTOOL) build . -f Dockerfile.centos $(BUILD_ARGS_RHEL83) -t $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(KVER_RHEL83)
+
 build-drivercontainers: $(FCOS_VERSIONS_BUILDS)
 $(FCOS_VERSIONS_BUILDS):
 	$(BUILDTOOL) build . -f Dockerfile.fedora33 --build-arg KVER=$(subst build-,,$@) -t $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(subst build-,,$@)
@@ -76,6 +90,12 @@ $(FCOS_VERSIONS_BUILDS):
 push-drivercontainers: $(FCOS_VERSIONS_PUSHES)
 $(FCOS_VERSIONS_PUSHES):
 	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(subst push-,,$@)
+
+push-rhel82:
+	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(KVER_RHEL82)
+
+push-rhel83:
+	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME)-$(KMOD_SOFTWARE_VERSION):$(KVER_RHEL83)
 
 clean:
 	rm -rf filetranspiler kmods-via-containers fakeroot $(OUTPUT_YAML) kvc-simple-kmod

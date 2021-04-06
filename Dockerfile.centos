@@ -1,0 +1,33 @@
+ARG CENTOS_VER
+FROM ${CENTOS_VER}
+
+WORKDIR /root
+
+ARG KVER
+ARG RPM_URL
+
+RUN echo "fastestmirror=1" >> /etc/dnf/dnf.conf
+RUN dnf install -y ${RPM_URL}
+RUN yum install -y git-core gcc elfutils-libelf-devel make kmod
+
+RUN git clone --branch n5010/fpga-ofs-dev https://github.com/OPAE/linux-dfl-backport.git && \
+    grep -l -v -r MODULE_VERSION linux-dfl-backport/drivers/ | xargs sed -i '/^MODULE_LICENSE/ s/$/\nMODULE_VERSION(KMODVER);/'
+
+RUN echo "export KERNEL=$(rpm -qa kernel-devel --queryformat \"%{VERSION}-%{RPMTAG_RELEASE}.%{ARCH}\")" > /root/env && \
+    echo "export KERNELDIR=/lib/modules/\$KERNEL/build" >> /root/env && \
+    cd linux-dfl-backport && \
+    echo "export KMODVER=$(git describe HEAD 2>/dev/null || git rev-parse --short HEAD)" >> /root/env && \
+    cd
+
+RUN source /root/env && \
+    bash -c "if [ ! -e $KERNELDIR ] ; then mkdir -p /lib/modules/\$KERNEL ; ln -s /usr/src/kernels/\$KERNEL /lib/modules/\$KERNEL/build; fi" \
+    rm -rf /lib/modules/${KVER}/kernel && \
+    make -C linux-dfl-backport "EXTRA_CFLAGS=-DKMODVER=\\\"${KMODVER}\\\"" -j4 V=1 && \
+    make -C linux-dfl-backport install -j4 && \
+    depmod -a -v ${KVER}
+
+
+FROM registry.access.redhat.com/ubi8/ubi-minimal
+RUN microdnf install kmod
+RUN mkdir -p /lib/modules/${KVER}
+COPY --from=0 /lib/modules/${KVER} /lib/modules/${KVER}

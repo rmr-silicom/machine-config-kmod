@@ -1,4 +1,4 @@
-Based on FCOS 33/Fedora 33, runtime for drivercontainer is ubi8.
+Based on FCOS 33/Fedora 33, RHCOS 8.2, RHCOS 8.3 runtime for drivercontainer is ubi8.
 
 This repository contains the kvc pattern, kmods via containers.
 * https://github.com/kmods-via-containers/kmods-via-containers

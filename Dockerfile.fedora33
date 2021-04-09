@@ -15,6 +15,8 @@ RUN koji download-build --rpm --arch=$(uname -m) kernel-core-${KVER}    && \
     rm -f ./kernel-{core,devel,modules}-${KVER}.rpm
 
 RUN git clone --branch n5010/fpga-ofs-dev-5.10-lts https://github.com/OPAE/linux-dfl-backport.git && \
+    cd linux-dfl-backport && \
+    git checkout ${KMODVER} && \
     grep -l -v -r MODULE_VERSION linux-dfl-backport/drivers/ | xargs sed -i '/^MODULE_LICENSE/ s/$/\nMODULE_VERSION(KMODVER);/'
 
 RUN echo "export KERNEL=$(rpm -qa kernel-devel --queryformat \"%{VERSION}-%{RPMTAG_RELEASE}.%{ARCH}\")" > /root/env && \

@@ -41,7 +41,7 @@ set -eu
 # - KMOD_CONTAINER_BUILD_FILE
 #   - The name of the file in the context with the build definition
 #     (i.e. Dockerfile)
-# - KMOD_SOFTWARE_VERSION
+# - KMODVER
 #   - The version of the software bundle
 # - KMOD_NAMES
 #   - A space separated list kernel module names that are part of the
@@ -51,7 +51,7 @@ source "/etc/kvc/${KVC_SOFTWARE_NAME}.conf"
 # The name of the container image to consider. It will be a unique
 # combination of the module software name/version and the targeted
 # kernel version.
-# IMAGE="${KMOD_REPOS}/${KVC_SOFTWARE_NAME}-${KMOD_SOFTWARE_VERSION}:${KVC_KVER}"
+# IMAGE="${KMOD_REPOS}/${KVC_SOFTWARE_NAME}:${KMODVER}-${KVC_KVER}"
 
 build_kmod_container() {
     if ! $(lspci -d 1c2c: | grep -q Silicom) ; then
@@ -59,12 +59,14 @@ build_kmod_container() {
         return
     fi
 
+ --build-arg RPM_URL=$(RHEL82_RPM) --build-arg KMODVER=$(KMODVER) --build-arg KVER=$(KVER_RHEL82)
     echo "Building ${IMAGE} kernel module container..."
     kvc_c_build --tls-verify=false -t ${KMOD_REPOS}/${IMAGE}   \
         --file ${KMOD_CONTAINER_BUILD_FILE}          \
         --label="name=${KVC_SOFTWARE_NAME}"          \
+        --build-arg CENTOS_VER=${CENTOS_VER}         \
         --build-arg KVER=${KVC_KVER}                 \
-        --build-arg KMODVER=${KMOD_SOFTWARE_VERSION} \
+        --build-arg KMODVER=${KMODVER} \
         ${KMOD_CONTAINER_BUILD_CONTEXT}
 
     # get rid of any dangling containers if they exist
@@ -112,9 +114,9 @@ build_kmods() {
         # Note the tr to delete the trailing carriage return
         x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F version "/lib/modules/${KVC_KVER}/extra/${module}.ko" | \
                                                                             tr -d '\r')
-        if [ "${x}" != "${KMOD_SOFTWARE_VERSION}" ]; then
+        if [ "${x}" != "${KMODVER}" ]; then
             echo "Module version mismatch within container. rebuilding ${KMOD_REPOS}/${IMAGE}"
-            echo "${x}, ${KMOD_SOFTWARE_VERSION}"
+            echo "${x}, ${KMODVER}"
             build_kmod_container
         fi
         # Sanity check to make sure the built kernel modules were really
@@ -122,7 +124,7 @@ build_kmods() {
         x=$(kvc_c_run ${KMOD_REPOS}/$IMAGE modinfo -F vermagic "/lib/modules/${KVC_KVER}/extra/${module}.ko" | \
                                                                         cut -d ' ' -f 1)
         if [ "${x}" != "${KVC_KVER}" ]; then
-            echo "Module not built against ${KMOD_SOFTWARE_VERSION}. rebuilding ${KMOD_REPOS}/${IMAGE}"
+            echo "Module not built against ${KMODVER}. rebuilding ${KMOD_REPOS}/${IMAGE}"
             echo "${x}, ${KVC_KVER}"
             build_kmod_container
         fi

@@ -143,7 +143,7 @@ load_kmods() {
             echo "Kernel module ${module} already loaded"
         else
             module=${module//-/_} # replace any dashes with underscore
-            kvc_c_run --privileged ${KMOD_REPOS}/$IMAGE modprobe ${module}
+            kvc_c_run --privileged ${KMOD_REPOS}/$IMAGE modprobe -S ${KVC_KVER} ${module}
         fi
     done
 }

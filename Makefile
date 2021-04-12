@@ -64,8 +64,9 @@ install: clean-fakeroot kmods-via-containers
 	install -v -m 644 $(FILES)/dfl-kmod.conf $(CONFDIR)/kvc/
 	sed -i "s/^KMOD_REPOS=.*$$/KMOD_REPOS=$(subst /,\\/,$(REPOS))/g" $(CONFDIR)/kvc/dfl-kmod.conf
 	install -v -m 644 $(PWD)/Dockerfile.centos $(CONFDIR)/kvc/
-	install -v -m 644 $(FILES)/blacklist-bmc.conf $(CONFDIR)/modprobe.d/
-	install -v -m 644 $(FILES)/regmap_spi_avmm.conf $(CONFDIR)/modules-load.d
+	install -v -m 644 $(FILES)/blacklist/blacklist-spi.conf $(CONFDIR)/modprobe.d/
+	install -v -m 644 $(FILES)/blacklist/blacklist-regmap.conf $(CONFDIR)/modprobe.d/
+	install -v -m 644 $(FILES)/blacklist/blacklist-intel.conf $(CONFDIR)/modprobe.d/
 
 install-debug: kmods-via-containers kvc-simple-kmod clean-fakeroot install
 	make -C kvc-simple-kmod

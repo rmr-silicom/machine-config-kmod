@@ -59,7 +59,7 @@ build_kmod_container() {
         return
     fi
 
- --build-arg RPM_URL=$(RHEL82_RPM) --build-arg KMODVER=$(KMODVER) --build-arg KVER=$(KVER_RHEL82)
+ --build-arg RPM_URL=$(RHEL_RPM) --build-arg KMODVER=$(KMODVER) --build-arg KVER=$(KVC_KVER)
     echo "Building ${IMAGE} kernel module container..."
     kvc_c_build --tls-verify=false -t ${KMOD_REPOS}/${IMAGE}   \
         --file ${KMOD_CONTAINER_BUILD_FILE}          \

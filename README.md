@@ -40,3 +40,9 @@ Override the Makefile settings for the drivercontainer
 example: docker.io/kvc/dfl-kmod:eea9cbc-4.18.0-193.el8.x86_64
 
 ``BUILDTOOL=docker REPOS=docker.io/kvc make push-rhel82``
+
+
+## FW update on FPGA card
+echo -n /root > /sys/module/firmware_class/parameters/path
+echo -n ofs_fim_page1_unsigned.bin > /sys/class/fpga_sec_mgr/fpga_sec0/update/filename
+cat /sys/class/fpga_sec_mgr/fpga_sec0/update/status

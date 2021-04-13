@@ -138,12 +138,8 @@ load_kmods() {
 
     echo "Loading kernel modules using the kernel module container..."
     for module in ${KMOD_NAMES}; do
-        if is_kmod_loaded ${module}; then
-            echo "Kernel module ${module} already loaded"
-        else
-            module=${module//-/_} # replace any dashes with underscore
-            kvc_c_run --privileged ${KMOD_REPOS}/$IMAGE modprobe -S ${KVC_KVER} ${module}
-        fi
+        module=${module//-/_} # replace any dashes with underscore
+        kvc_c_run --privileged ${KMOD_REPOS}/$IMAGE modprobe -S ${KVC_KVER} ${module}
     done
 }
 
@@ -155,12 +151,7 @@ unload_kmods() {
 
     echo "Unloading kernel modules..."
     for module in ${KMOD_NAMES}; do
-        if is_kmod_loaded ${module}; then
-            module=${module//-/_} # replace any dashes with underscore
-            rmmod "${module}"
-        else
-            echo "Kernel module ${module} already unloaded"
-        fi
+        echo "Kernel module ${module} already unloaded"
     done
 }
 

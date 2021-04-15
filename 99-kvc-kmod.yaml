@@ -2,7 +2,7 @@ apiVersion: machineconfiguration.openshift.io/v1
 kind: MachineConfig
 metadata:
   labels:
-    machineconfiguration.openshift.io/role: "worker"
+    machineconfiguration.openshift.io/role: worker
   name: 99-kvc-kmod
 spec:
   config:
@@ -41,7 +41,7 @@ spec:
          overwrite: true
          path: /etc/modprobe.d/blacklist-intel.conf
        - contents:
-           source: data:inode/x-empty;charset=binary;base64,
+           source: data:text/plain;charset=us-ascii;base64,YmxhY2tsaXN0IHNwaS1hbHRlcmEgcmVnbWFwLXNwaS1hdm1t
          mode: 420
          overwrite: true
          path: /etc/modprobe.d/blacklist-spi.conf

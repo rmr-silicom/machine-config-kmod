@@ -43,7 +43,7 @@ transpile: filetranspiler install kmods-via-containers
 ifeq ($(INSTALL_ON_MASTER),yes)
 	cat $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
 else
-	sed "/machineconfiguration.openshift.io\/role: \"master\"/d" $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
+	sed "/machineconfiguration.openshift.io\/role: master/d" $(FILES)/mc-base.yaml > $(PWD)/$(OUTPUT_YAML)
 endif
 	podman run --rm -ti --volume $(PWD):/srv:z localhost/filetranspiler:latest -i /srv/files/baseconfig.ign -f /srv/fakeroot --format=yaml --dereference-symlinks | sed 's/^/     /' >> $(PWD)/$(OUTPUT_YAML)
 

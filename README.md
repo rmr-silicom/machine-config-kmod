@@ -3,6 +3,9 @@ Based on FCOS 33/Fedora 33, RHCOS 8.2, RHCOS 8.3 runtime for drivercontainer is 
 This repository contains the kvc pattern, kmods via containers.
 * https://github.com/kmods-via-containers/kmods-via-containers
 
+## Apply nfd daemonset to tag the nodes correctly.
+kubectl apply -f https://raw.githubusercontent.com/rmr-silicom/clustermgr/main/ansible/files/nfd-daemonset.yaml
+
 ## Apply MachineConfig yaml directly
 kubectl apply -f https://raw.githubusercontent.com/rmr-silicom/machine-config-kmod/main/99-kvc-kmod.yaml
 

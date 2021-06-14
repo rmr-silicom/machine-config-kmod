@@ -10,12 +10,13 @@ export GODEBUG=x509ignoreCN=0
 INSTALL_ON_MASTER=no
 FILES=$(PWD)/files
 
-RHEL82_RPM := https://vault.centos.org/8.2.2004/BaseOS/x86_64/os/Packages/kernel-devel-4.18.0-193.el8.x86_64.rpm
-RHEL83_RPM := http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/kernel-devel-4.18.0-240.el8.x86_64.rpm
-
 KMODVER := eea9cbc
 KVER_RHEL82 = 4.18.0-193.el8.x86_64
-KVER_RHEL83 = 4.18.0-240.el8.x86_64
+KVER_RHEL83 = 4.18.0-305.3.1.el8.x86_64
+
+RHEL82_RPM := https://vault.centos.org/8.2.2004/BaseOS/x86_64/os/Packages/kernel-devel-${KVER_RHEL82}.rpm
+RHEL83_RPM := http://mirror.centos.org/centos/8/BaseOS/x86_64/os/Packages/kernel-devel-${KVER_RHEL83}.rpm
+
 BUILD_ARGS_RHEL82 = --build-arg CENTOS_VER=docker.io/centos:8.2.2004 --build-arg RPM_URL=$(RHEL82_RPM) --build-arg KMODVER=$(KMODVER) --build-arg KVER=$(KVER_RHEL82)
 BUILD_ARGS_RHEL83 = --build-arg CENTOS_VER=docker.io/centos:8.3.2011 --build-arg RPM_URL=$(RHEL83_RPM) --build-arg KMODVER=$(KMODVER) --build-arg KVER=$(KVER_RHEL83)
 
@@ -24,7 +25,8 @@ FCOS_VERSIONS_BUILDS := $(foreach target,$(FCOS_VERSIONS),$(addprefix build-,$(t
 FCOS_VERSIONS_PUSHES := $(foreach target,$(FCOS_VERSIONS),$(addprefix push-,$(target)))
 
 BUILDTOOL?=podman
-IMAGE_NAME=dfl-kmod
+IMAGE_NAME=dfl-drivers
+IMAGE_NAME_DRIVER_CONTAINER=dfl-kmod-drivercontainer
 REPOS?=quay.io/ryan_raasch
 OUTPUT_YAML=99-kvc-kmod.yaml
 
@@ -84,19 +86,25 @@ rhel82:
 rhel83:
 	$(BUILDTOOL) build . -f Dockerfile.centos $(BUILD_ARGS_RHEL83) -t $(REPOS)/$(IMAGE_NAME):$(KMODVER)-$(KVER_RHEL83)
 
+drivercontainer-8.2:
+	$(BUILDTOOL) build . -f Dockerfile.drivercontainer $(BUILD_ARGS_RHEL82) -t $(REPOS)/$(IMAGE_NAME_DRIVER_CONTAINER):$(KMODVER)-$(KVER_RHEL82)
+
+drivercontainer-8.3:
+	$(BUILDTOOL) build . -f Dockerfile.drivercontainer $(BUILD_ARGS_RHEL83) -t $(REPOS)/$(IMAGE_NAME_DRIVER_CONTAINER):$(KMODVER)-$(KVER_RHEL83)
+
 build-drivercontainers: $(FCOS_VERSIONS_BUILDS)
 $(FCOS_VERSIONS_BUILDS):
 	$(BUILDTOOL) build . -f Dockerfile.fedora33 --build-arg KVER=$(subst build-,,$@) -t $(REPOS)/$(IMAGE_NAME):$(subst build-,,$@)
-
-push-drivercontainers: $(FCOS_VERSIONS_PUSHES)
-$(FCOS_VERSIONS_PUSHES):
-	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME):$(subst push-,,$@)
 
 push-rhel82:
 	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME):$(KMODVER)-$(KVER_RHEL82)
 
 push-rhel83:
 	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME):$(KMODVER)-$(KVER_RHEL83)
+
+push-drivercontainers:
+	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME_DRIVER_CONTAINER):$(KMODVER)-$(KVER_RHEL82)
+	$(BUILDTOOL) push $(REPOS)/$(IMAGE_NAME_DRIVER_CONTAINER):$(KMODVER)-$(KVER_RHEL83)
 
 clean:
 	rm -rf filetranspiler kmods-via-containers fakeroot $(OUTPUT_YAML) kvc-simple-kmod

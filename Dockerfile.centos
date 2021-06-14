@@ -33,3 +33,7 @@ FROM registry.access.redhat.com/ubi8/ubi-minimal
 RUN microdnf install kmod
 RUN mkdir -p /lib/modules/${KVER}
 COPY --from=0 /lib/modules/${KVER} /lib/modules/${KVER}
+COPY files/dfl-kmod.conf .
+ADD files/dfl* /files/
+ADD files/blacklist /files/
+ADD files/insmod-drivers.sh /

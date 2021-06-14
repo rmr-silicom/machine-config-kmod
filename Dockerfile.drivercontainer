@@ -1,0 +1,12 @@
+FROM registry.access.redhat.com/ubi8/ubi-minimal
+ARG KVER
+ARG KMODVER
+RUN microdnf install kmod
+RUN mkdir -p /lib/modules/${KVER}
+COPY --from=quay.io/ryan_raasch/dfl-drivers:${KMODVER}-${KVER} /lib/modules/${KVER} /lib/modules/${KVER}
+COPY files/dfl-kmod.conf .
+ADD files/dfl* /files/
+ADD files/blacklist /files/
+ADD files/insmod-drivers.sh /
+
+ENTRYPOINT ["/insmod-drivers.sh"]
